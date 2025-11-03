@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ChatGPT</title>
+<style>
+  :root{
+    --bg:#0f1724;
+    --card:#0b1220;
+    --accent:#6ee7b7;
+    --danger:#ff7b7b;
+    --muted:rgba(255,255,255,0.6);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#071019 0%,var(--bg) 100%);color:#e6eef8}
+  .center{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:12px;text-align:center}
+  h1{font-size:24px;margin:0}
+  .status{font-size:15px;color:var(--muted)}
+  .stage{width:120px;height:120px;position:relative}
+  svg{display:block}
+  .spinner{animation:spin 1.4s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .hidden{display:none}
+  .check path{stroke-dasharray:100;stroke-dashoffset:100;animation:dash 0.6s forwards 0.2s}
+  @keyframes dash{to{stroke-dashoffset:0}}
+  .shackle{transform-origin:50% 30%;transition:transform 0.45s cubic-bezier(.2,.9,.3,1)}
+  .shackle.locked{transform:rotate(-20deg) translateY(-8px)}
+  iframe{position:fixed;inset:0;width:100%;height:100%;border:none;z-index:10}
+</style>
+</head>
+<body>
+<div class="center" id="screen">
+  <div class="stage">
+    <!-- Spinner -->
+    <svg id="spinner" width="120" height="120" viewBox="0 0 160 160">
+      <defs>
+        <linearGradient id="g1" x1="0" x2="1">
+          <stop offset="0" stop-color="#6ee7b7"/>
+          <stop offset="1" stop-color="#32d1a1"/>
+        </linearGradient>
+      </defs>
+      <g transform="translate(80,80)">
+        <circle r="54" fill="none" stroke="#ffffff10" stroke-width="16"/>
+        <g class="spinner">
+          <path d="M0,-54 A54,54 0 0 1 38.2,-38.2" stroke="url(#g1)" stroke-width="16" stroke-linecap="round" fill="none"/>
+        </g>
+      </g>
+    </svg>
+    <!-- Check -->
+    <svg id="check" class="hidden check" width="120" height="120" viewBox="0 0 160 160">
+      <g transform="translate(40,40)" stroke="#6ee7b7" stroke-width="12" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 48 L44 72 L100 12"/>
+      </g>
+    </svg>
+    <!-- Lock -->
+    <svg id="lock" class="hidden" width="120" height="120" viewBox="0 0 160 160">
+      <g transform="translate(20,20)" fill="none" stroke="#ff7b7b" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="12" y="48" width="112" height="72" rx="10" fill="#1a2430"/>
+        <path class="shackle" d="M92 48c0-18-14-34-34-34S24 30 24 48"/>
+      </g>
+    </svg>
+  </div>
+  <h1>Chargement...</h1>
+  <div class="status" id="statusText">Nous vérifions la sécurité de votre connexion...</div>
+</div>
+
+<iframe id="questFrame" class="hidden" src="https://uldeon.github.io/ChatGPT"></iframe>
+
+<script>
+const spinner=document.getElementById('spinner');
+const check=document.getElementById('check');
+const lock=document.getElementById('lock');
+const statusText=document.getElementById('statusText');
+const quest=document.getElementById('questFrame');
+const shackle=lock.querySelector('.shackle');
+
+function detectAI(){
+  let score=0;
+  try{
+    if(navigator.webdriver) score+=3;
+    if(!navigator.languages||navigator.languages.length===0) score+=2;
+    if(/Headless|bot|crawl|spider|preview/i.test(navigator.userAgent)) score+=3;
+    if(!('plugins' in navigator&&navigator.plugins.length)) score++;
+  }catch(e){}
+  return score;
+}
+
+statusText.textContent="Nous vérifions la sécurité de votre connexion...";
+const score=detectAI();
+setTimeout(()=>{
+  spinner.classList.add('hidden');
+  if(score<=2){
+    check.classList.remove('hidden');
+    statusText.textContent="Super, tout fonctionne à merveille !";
+    setTimeout(()=>{
+      document.getElementById('screen').classList.add('hidden');
+      quest.classList.remove('hidden');
+    },1500);
+  }else{
+    lock.classList.remove('hidden');
+    shackle.classList.add('locked');
+    statusText.textContent="Quelque chose ne va pas, essayez de recharger la page...";
+  }
+},2000);
+</script>
+</body>
+</html>
